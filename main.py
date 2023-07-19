@@ -1,10 +1,14 @@
 import pose as p
 import cv2
-import time 
+import time
 import numpy as np
-from fastdtw import fastdtw  #library to calculate the distance using dynamic time wraping 
+from fastdtw import (
+    fastdtw,
+)  # library to calculate the distance using dynamic time wraping
+# from scipy.spatial.distance import cityblock
 # from dtaidistance import dtw_ndim
-# from dtaidistance import dtw 
+# from dtaidistance import dtw
+
 
 def play():
     """
@@ -14,36 +18,39 @@ def play():
     Arguments: No arguments
 
     returns : List of 33 key points for each frame. Shape (FRAMES,33 ,2)
-    
+
     """
-    cap = cv2.VideoCapture('./video/5.mp4')
+    cap = cv2.VideoCapture("./video/5.mp4")
     ############## change color in pose for video 2 ##################
-    pTime=0
+    pTime = 0
     detector = p.poseDetect()
-    landmarks=[]
-    a=0
-    m=[]
+    landmarks = []
+    a = 0
+    m = []
     while True:
-        ret,frame= cap.read()
-        a = a+1
-        success,img =cap.read()
-        if success==True:
+        ret, frame = cap.read()
+        a = a + 1
+        success, img = cap.read()
+        if success == True:
             img = detector.findPose(img)
-            res = detector.getPosition(img,draw=True)
+            res = detector.getPosition(img, draw=True)
             m.append(res)
-            cTime =time.time()
-            fps=1/(cTime-pTime)
-            pTime= cTime
-            cv2.putText(img,str(int(fps)),(70,50),cv2.FONT_HERSHEY_PLAIN,3, (255,0,0),3)
-            cv2.imshow("image",img)
+            cTime = time.time()
+            fps = 1 / (cTime - pTime)
+            pTime = cTime
+            cv2.putText(
+                img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3
+            )
+            cv2.imshow("image", img)
         else:
             return m
         cv2.waitKey(1)
 
+
 def capture():
     """
-    function to capture live video of 5 seconds which is processed using mediapipe to find coordinates for 33 key points 
-    in every frame. List is returned with shape (FRAMES,33,2) 
+    function to capture live video of 5 seconds which is processed using mediapipe to find coordinates for 33 key points
+    in every frame. List is returned with shape (FRAMES,33,2)
 
     Arguments : None
 
@@ -51,42 +58,45 @@ def capture():
     """
 
     detector = p.poseDetect()
-    cam_arr= []
+    cam_arr = []
     cap = cv2.VideoCapture(0)
-    ret= cap.set(3,640)
-    ret= cap.set(4,352)
+    ret = cap.set(3, 640)
+    ret = cap.set(4, 352)
     start = time.time()
     while True:
-        ret,frame = cap.read()
+        ret, frame = cap.read()
         frame = detector.findPose(frame)
-        res = detector.getPosition(frame,draw=True)
+        res = detector.getPosition(frame, draw=True)
         cam_arr.append(res)
-        cv2.imshow("image",frame)        
+        cv2.imshow("image", frame)
         end = time.time()
-        if(int(end)-int(start) == 5):
+        if int(end) - int(start) == 5:
             break
         cv2.waitKey(1)
     cap.release()
     cv2.destroyAllWindows
     return cam_arr
 
+
 def norm(arr):
-    """ 
+    """
     arguments :-
     arr : array containing all 33 key points for all frames
 
-    returns : list containing 33 2D arrays of shape (FRAMES,2) 
-    
+    returns : list containing 33 2D arrays of shape (FRAMES,2)
+
     """
-    t= np.array(arr)
-    data= []
+    t = np.array(arr)
+    data = []
     for i in range(t.shape[1]):
-        r=[]
+        r = []
         for j in range(t.shape[0]):
             r.append(t[j][i])
         data.append(np.array(r))
     return data
 
+def manhattan_distance(x, y):
+    return np.sum(np.abs(x - y))
 
 def final_score_cal(res,acc):
     """
@@ -96,12 +106,12 @@ def final_score_cal(res,acc):
     res : list of length 33, which 2d arrays of shape (FRAMES,2)
     acc : list of length 33, which 2d arrays of shape (FRAMES,2)
 
-    returns : 
+    returns :
     final score : Float value of DTW distance
     """
     score=[]
     for i in range(33):
-        distance, path = fastdtw(res[i], acc[i])
+        distance, path = fastdtw(res[i], acc[i], dist=manhattan_distance)
         score.append(distance)
     range_min = min(score)
     range_max = max(score)
@@ -113,10 +123,10 @@ def final_score_cal(res,acc):
     return mean_similarity * 100  # Convert to percentage
     # return mean
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     result = play()
     res = norm(result)
     arr = capture()
     acc = norm(arr)
-    percentage=final_score_cal(res,acc)
-    print("Final Similarity Percentage : ",percentage)
+    percentage = final_score_cal(res, acc)
+    print("Final Similarity Percentage : ", percentage)

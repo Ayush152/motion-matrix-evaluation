@@ -32,7 +32,7 @@ class poseDetect():
         img : Frame after drawing the cordinates given by mediapipe
         """
         imgRGB= cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-        #imgRGB= img                               # when you record in ubuntu color format is already RGB
+        # imgRGB= img                               # when you record in ubuntu color format is already RGB
 
         self.results = self.pose.process(imgRGB)
         landmark= self.results.pose_landmarks
