@@ -7,9 +7,8 @@
 </p>
 
 
-__DEMO__
-
-
+## Demo
+<img src="https://github.com/Ayush152/motion-matrix-evaluation/blob/main/demo/demo.gif" />
 
 ## Functionalities
 
